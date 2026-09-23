@@ -375,14 +375,14 @@ Sensores e comparações ocupam só o cabeçalho da caixa. Ações e chamadas de
 <!-- Preencha nome e, se quiser, papel ou matrícula de cada integrante. -->
 
 | Nome | Papel |
-| --- | --- |
-|  |  |
-|  |  |
-|  |  |
-|  |  |
+| Luiz Guilherme C. da Silva  | BackEnd 1 |
+| Lucas de Oliveira | BackEnd 2 |
+| Rafael Styller | QA |
+| Daniel Bigonha | Front/PO |
+| Arthur Teixeira | Database |
 
 ## Quadro Kanban
 
 <!-- Substitua o endereço abaixo pelo link do quadro da equipe. -->
 
-[Abrir o quadro Kanban](https://)
+[Abrir o quadro Kanban](https://github.com/users/lluuiizz/projects/5)
