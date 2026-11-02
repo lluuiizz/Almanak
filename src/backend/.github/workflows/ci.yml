@@ -1,0 +1,27 @@
+name: CI Almanak
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validacao-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Clonar o repositório
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Checklist de Qualidade (QA)
+        run: |
+          echo "Iniciando validação do código..."
+          echo "Atenção Front e Back: Quando tiverem testes automatizados, o QA vai habilitá-los aqui!"
+      
+      # Futuramente, descomentar as linhas abaixo conforme a equipe define a stack (Node, Python, etc)
+      # - name: Configurar Node
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      # - name: Instalar dependências Front
+      #   run: cd src/frontend && npm install
+      # - name: Rodar Lint Front
+      #   run: cd src/frontend && npm run lint
