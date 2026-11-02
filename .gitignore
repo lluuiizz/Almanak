@@ -1,2 +1,19 @@
-# Memoria local do assistente sobre o projeto. Nao versionar.
-.almanak-project.mem
+# Dependências
+node_modules/
+__pycache__/
+.venv/
+venv/
+
+# Ambientes e Credenciais
+.env
+.env.local
+
+# Logs e Build
+npm-debug.log
+dist/
+build/
+.DS_Store
+
+# Banco de dados local
+*.sqlite3
+db_data/
