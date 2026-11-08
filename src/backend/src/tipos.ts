@@ -52,14 +52,31 @@ export interface Evento {
   veredito: Veredito;
 }
 
+export interface Fase {
+  id: string;
+  largura: number;
+  altura: number;
+  casas: Casa[];
+  blocosLiberados: Bloco[];
+  inicio: Personagem;
+  limiteDePassos: number;
+  condicaoDeVitoria: "chegar_no_destino";
+}
+
 export interface Tentativa {
   semente: number;
+  faseId: string;
   largura: number;
   altura: number;
   casas: Casa[];
   inicio: Personagem;
   limiteDePassos: number;
   programa: Bloco[];
+}
+
+export interface Progresso {
+  fasesConcluidas: string[];
+  talento: string | null;
 }
 
 export interface Resultado {
