@@ -15,8 +15,8 @@ services:
     restart: unless-stopped
 
   backend:
-    build: 
-      context: ./backend
+    build:
+      context: ./src/backend
     container_name: almanak-backend
     ports:
       - "3000:3000"
