@@ -386,15 +386,3 @@ Sensores e comparações ocupam só o cabeçalho da caixa. Ações e chamadas de
 <!-- Substitua o endereço abaixo pelo link do quadro da equipe. -->
 
 [Abrir o quadro Kanban](https://github.com/users/lluuiizz/projects/5)
-
-## Backend
-
-O motor da fase 1 fica em `src/backend`. A stack é Node.js 20 com TypeScript. Quem decide vitória, parede ou limite de passos é o servidor. Montar a lista de blocos não move o personagem.
-
-```bash
-cd src/backend
-npm install
-npm test
-```
-
-O planejamento das sprints está em [`docs/sprints.md`](docs/sprints.md).
