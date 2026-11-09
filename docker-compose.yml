@@ -1,38 +1,63 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
     container_name: almanak-db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: almanak
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      POSTGRES_DB: ${POSTGRES_DB:-almanak}
     ports:
-      - "5432:5432"
+      # Exposto apenas para o localhost da máquina de desenvolvimento na porta 5432
+      - "127.0.0.1:5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./src/database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-almanak}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   backend:
-    build: 
-      context: ./backend
+    build:
+      context: ./src/backend
     container_name: almanak-backend
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgres://admin:password123@db:5432/almanak
+      - PORT=3000
+      - DATABASE_URL=postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password123}@db:5432/${POSTGRES_DB:-almanak}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - backend_net
+      - frontend_net
 
   frontend:
     build:
-      context: ./frontend
+      context: ./src/frontend
     container_name: almanak-frontend
     ports:
       - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
     depends_on:
       - backend
+    networks:
+      - frontend_net
+
+networks:
+  # Rede isolada entre Backend e Banco (o container do Frontend não tem acesso ao db)
+  backend_net:
+    driver: bridge
+    internal: true
+  # Rede de comunicação entre Frontend e Backend
+  frontend_net:
+    driver: bridge
 
 volumes:
   db_data:
