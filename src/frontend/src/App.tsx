@@ -32,6 +32,7 @@ function App() {
   const [fasesConcluidas, setFasesConcluidas] = useState<string[]>([])
   const [arrastandoSobreProgramador, setArrastandoSobreProgramador] = useState(false)
   const [indiceReordenacao, setIndiceReordenacao] = useState<number | null>(null)
+  const [erroApi, setErroApi] = useState<string | null>(null)
 
   const faseConcluida = fasesConcluidas.includes(FASE_1.id)
 
@@ -137,11 +138,20 @@ function App() {
 
     setExecutando(true)
     setUltimoResultado(null)
+    setErroApi(null)
     setIndiceBlocoAtivo(null)
     resetarPosicaoPersonagem()
 
     const listaBlocos = programa.map((item) => item.bloco)
-    const resultado = await executarProgramaNaFase(FASE_1, listaBlocos)
+    let resultado
+    try {
+      resultado = await executarProgramaNaFase(FASE_1, listaBlocos)
+    } catch (erro) {
+      setErroApi(erro instanceof Error ? erro.message : 'O servidor não respondeu.')
+      setIndiceBlocoAtivo(null)
+      setExecutando(false)
+      return
+    }
 
     // Pausa inicial para o jogador ver o personagem na casa P antes do passo 1
     await new Promise((resolve) => setTimeout(resolve, 260))
@@ -542,6 +552,15 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {erroApi && (
+              <div className="verdict-banner tone-erro" role="alert">
+                <div className="verdict-content">
+                  <strong>Não foi possível executar</strong>
+                  <p>{erroApi}</p>
+                </div>
+              </div>
+            )}
 
             {/* Banner de Veredito após o Play */}
             {feedback && (
