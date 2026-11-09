@@ -46,7 +46,7 @@ Preparação que o grupo já distribuiu para a revisão de 04/11. As issues #47 
 | Fundação | Estruturar o repositório e o .gitignore | Rafael Stylita | [#59](https://github.com/lluuiizz/Almanak/issues/59) |
 | Fundação | Subir a pipeline de CI | Rafael Stylita | [#58](https://github.com/lluuiizz/Almanak/issues/58) |
 | Banco | Subir o Postgres no Docker Compose | Rafael Stylita | [#53](https://github.com/lluuiizz/Almanak/issues/53) |
-| Banco | Modelar os dados e validar com o Luiz e o Lucas | Arthur Teixeira | [#52](https://github.com/lluuiizz/Almanak/issues/52) |
+| Banco | Modelar os dados e validar com o Luiz e o Lucas | Arthur Teixeira | [#52](https://github.com/lluuiizz/Almanak/issues/52), [#47](https://github.com/lluuiizz/Almanak/issues/47) |
 | Front | Configurar React, Vite, TypeScript e o Dockerfile | Daniel Bigonha | [#57](https://github.com/lluuiizz/Almanak/issues/57) |
 | Fundação | Apontar o README para o quadro | Luiz Guilherme Costa da Silva | [#42](https://github.com/lluuiizz/Almanak/issues/42) |
 

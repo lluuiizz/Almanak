@@ -400,6 +400,8 @@ npm run dev
 
 Com o Compose, a API escuta na porta 3000 e usa `DATABASE_URL=postgres://admin:password123@db:5432/almanak`. Fora do container, o mesmo banco está em `127.0.0.1:5432`.
 
+O diagrama, as chaves e os tipos estão em [`docs/banco-de-dados.md`](docs/banco-de-dados.md).
+
 ### Contrato HTTP
 
 O cliente e o servidor trocam a mesma árvore de blocos em JSON. Não há um formato diferente em cada ponta. Uma ação é `{ "tipo": "mover", "direcao": "direita" }` (também `virar`, `avancar`, `atacar`, `pegar`). Um `se`, um `enquanto` e um `repetir` guardam os filhos, em ordem, em `entao` ou `corpo`. A pergunta é um sensor, `nao`, `e`, `ou` ou uma `comparacao`. Sensor no corpo de uma ação, ação no lugar da pergunta e escrita em `DANO_TALENTO` são recusados.
