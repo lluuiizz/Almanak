@@ -1,15 +1,4 @@
-import type {
-  Bloco,
-  Casa,
-  Direcao,
-  Evento,
-  Fase,
-  FaseResumo,
-  Personagem,
-  Posicao,
-  Resultado,
-  Veredito,
-} from './tipos'
+import type { Bloco, Fase, FaseResumo, Resultado, Veredito } from './tipos'
 
 export const FASE_1: Fase = {
   id: 'fase-1',
@@ -139,158 +128,64 @@ export const CATALOGO_FASES: FaseResumo[] = [
   },
 ]
 
-const ORDEM: Direcao[] = ['norte', 'leste', 'sul', 'oeste']
+const tentativasAbertas = new Map<string, string>()
 
-const PASSO: Record<Direcao, Posicao> = {
-  norte: { x: 0, y: -1 },
-  leste: { x: 1, y: 0 },
-  sul: { x: 0, y: 1 },
-  oeste: { x: -1, y: 0 },
+export function urlDaApi(): string {
+  const configurada = import.meta.env.VITE_API_URL as string | undefined
+  const base = configurada && configurada.length > 0 ? configurada : 'http://localhost:3000'
+  return base.replace(/\/$/, '')
 }
 
-const MOVIMENTO_PARA_OLHAR = {
-  cima: 'norte',
-  direita: 'leste',
-  baixo: 'sul',
-  esquerda: 'oeste',
-} as const
-
-function clonarPersonagem(p: Personagem): Personagem {
-  return {
-    ...p,
-    posicao: { ...p.posicao },
-    alforje: [...p.alforje],
-  }
-}
-
-function dentro(pos: Posicao, largura: number, altura: number): boolean {
-  return pos.x >= 0 && pos.y >= 0 && pos.x < largura && pos.y < altura
-}
-
-function casaEm(fase: Fase, pos: Posicao): Casa {
-  return fase.casas[pos.y * fase.largura + pos.x]
-}
-
-function girar(olhar: Direcao, sentido: 'esquerda' | 'direita'): Direcao {
-  const idx = ORDEM.indexOf(olhar)
-  const delta = sentido === 'direita' ? 1 : -1
-  return ORDEM[(idx + delta + ORDEM.length) % ORDEM.length]
-}
-
-function andar(
-  personagem: Personagem,
-  direcao: Direcao,
-  fase: Fase,
-): { personagem: Personagem; veredito?: Veredito } {
-  const delta = PASSO[direcao]
-  const alvo = {
-    x: personagem.posicao.x + delta.x,
-    y: personagem.posicao.y + delta.y,
-  }
-  const virado = { ...clonarPersonagem(personagem), olhar: direcao }
-
-  if (!dentro(alvo, fase.largura, fase.altura)) {
-    return { personagem: virado, veredito: 'parede' }
-  }
-
-  const casa = casaEm(fase, alvo)
-  if (casa.tipo === 'parede') {
-    return { personagem: virado, veredito: 'parede' }
-  }
-  if (casa.tipo === 'inimigo') {
-    return { personagem: virado, veredito: 'inimigo' }
-  }
-
-  const avancou = { ...virado, posicao: alvo }
-  if (casa.tipo === 'destino') {
-    return { personagem: avancou, veredito: 'vitoria' }
-  }
-
-  return { personagem: avancou }
-}
-
-/**
- * Executa o programa enviado pelo jogador.
- * Caso VITE_API_URL esteja definida e acessível, envia para o backend;
- * caso contrário, usa o contrato idêntico a src/backend/src/motor.ts.
- */
 export async function executarProgramaNaFase(
   fase: Fase,
   programa: Bloco[],
+  jaReabriu = false,
 ): Promise<Resultado> {
-  const apiUrl = import.meta.env.VITE_API_URL as string | undefined
-  if (apiUrl) {
-    try {
-      const resposta = await fetch(`${apiUrl}/fases/${fase.id}/executar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ programa }),
-      })
-      if (resposta.ok) {
-        return (await resposta.json()) as Resultado
-      }
-    } catch {
-      // Fallback para simulação fiel ao contrato do backend enquanto a API HTTP não está ativa
+  const apiUrl = urlDaApi()
+  let tentativaId = tentativasAbertas.get(fase.id)
+
+  if (!tentativaId) {
+    const abertura = await enviar(`${apiUrl}/fases/${fase.id}/tentativas`, {})
+    if (!abertura.ok) {
+      throw new Error(await mensagemDeErro(abertura, 'Não foi possível abrir a tentativa.'))
     }
+    const criada = (await abertura.json()) as { id?: string }
+    if (!criada.id) {
+      throw new Error('A API não devolveu o id da tentativa.')
+    }
+    tentativaId = criada.id
+    tentativasAbertas.set(fase.id, tentativaId)
   }
 
-  const inicio = clonarPersonagem(fase.inicio)
-  let personagem = clonarPersonagem(fase.inicio)
-  const eventos: Evento[] = []
-  let passos = 0
-
-  for (const bloco of programa) {
-    if (personagem.vida <= 0) {
-      eventos.push({ bloco, personagem: clonarPersonagem(personagem), veredito: 'vida_zerada' })
-      return { eventos, veredito: 'vida_zerada', personagem: clonarPersonagem(inicio), programa }
-    }
-
-    if (passos >= fase.limiteDePassos) {
-      eventos.push({
-        bloco,
-        personagem: clonarPersonagem(personagem),
-        veredito: 'limite_de_passos',
-      })
-      return {
-        eventos,
-        veredito: 'limite_de_passos',
-        personagem: clonarPersonagem(inicio),
-        programa,
-      }
-    }
-
-    passos += 1
-    let efeito: { personagem: Personagem; veredito?: Veredito } = {
-      personagem: clonarPersonagem(personagem),
-    }
-
-    if (bloco.tipo === 'mover') {
-      efeito = andar(personagem, MOVIMENTO_PARA_OLHAR[bloco.direcao], fase)
-    } else if (bloco.tipo === 'virar') {
-      efeito = {
-        personagem: { ...clonarPersonagem(personagem), olhar: girar(personagem.olhar, bloco.sentido) },
-      }
-    } else if (bloco.tipo === 'avancar') {
-      efeito = andar(personagem, personagem.olhar, fase)
-    }
-
-    personagem = efeito.personagem
-    const veredito = efeito.veredito ?? 'sem_vitoria'
-    eventos.push({ bloco, personagem: clonarPersonagem(personagem), veredito })
-
-    if (veredito === 'vitoria') {
-      return { eventos, veredito, personagem, programa }
-    }
-    if (veredito !== 'sem_vitoria') {
-      return { eventos, veredito, personagem: clonarPersonagem(inicio), programa }
-    }
+  const resposta = await enviar(`${apiUrl}/tentativas/${tentativaId}/execucoes`, { programa })
+  if (resposta.status === 404 && !jaReabriu) {
+    tentativasAbertas.delete(fase.id)
+    return executarProgramaNaFase(fase, programa, true)
   }
+  if (!resposta.ok) {
+    throw new Error(await mensagemDeErro(resposta, 'O servidor recusou o programa.'))
+  }
+  return (await resposta.json()) as Resultado
+}
 
-  return {
-    eventos,
-    veredito: 'sem_vitoria',
-    personagem,
-    programa,
+async function enviar(url: string, corpo: unknown): Promise<Response> {
+  try {
+    return await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(corpo),
+    })
+  } catch {
+    throw new Error('O servidor não respondeu. A vitória só é decidida pela API.')
+  }
+}
+
+async function mensagemDeErro(resposta: Response, reserva: string): Promise<string> {
+  try {
+    const corpo = (await resposta.json()) as { mensagem?: string }
+    return corpo.mensagem ?? reserva
+  } catch {
+    return reserva
   }
 }
 
