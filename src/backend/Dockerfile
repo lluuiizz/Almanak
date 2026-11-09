@@ -5,4 +5,5 @@ RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
-CMD ["npm", "test"]
+EXPOSE 3000
+CMD ["node", "dist/principal.js"]
