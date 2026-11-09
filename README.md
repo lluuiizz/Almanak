@@ -389,12 +389,39 @@ Sensores e comparações ocupam só o cabeçalho da caixa. Ações e chamadas de
 
 ## Backend
 
-O motor da fase 1 fica em `src/backend`. A stack é Node.js 20 com TypeScript. Quem decide vitória, parede ou limite de passos é o servidor. Montar a lista de blocos não move o personagem.
+O motor da fase 1 fica em `src/backend`. A stack é Node.js 20 com TypeScript. O Postgres 15 sobe pelo Docker Compose. Quem decide vitória, parede ou limite de passos é o servidor. Montar a lista de blocos não move o personagem.
 
 ```bash
 cd src/backend
 npm install
 npm test
+npm run dev
+```
+
+Com o Compose, a API escuta na porta 3000 e usa `DATABASE_URL=postgres://admin:password123@db:5432/almanak`. Fora do container, o mesmo banco está em `127.0.0.1:5432`.
+
+### Contrato HTTP
+
+O cliente e o servidor trocam a mesma árvore de blocos em JSON. Não há um formato diferente em cada ponta. Uma ação é `{ "tipo": "mover", "direcao": "direita" }` (também `virar`, `avancar`, `atacar`, `pegar`). Um `se`, um `enquanto` e um `repetir` guardam os filhos, em ordem, em `entao` ou `corpo`. A pergunta é um sensor, `nao`, `e`, `ou` ou uma `comparacao`. Sensor no corpo de uma ação, ação no lugar da pergunta e escrita em `DANO_TALENTO` são recusados.
+
+Três operações:
+
+| Método e caminho | Papel |
+| --- | --- |
+| `GET /fases` | Lista as fases e os blocos liberados em cada uma. |
+| `POST /fases/:faseId/tentativas` | Abre uma tentativa. Devolve `semente` e `estadoInicial` (mapa, personagem, limite de passos). |
+| `POST /tentativas/:tentativaId/execucoes` | Recebe `{ "programa": [ ... ] }`, executa e devolve `eventos` ordenados e `veredito` (`sem_vitoria`, `vitoria`, `parede`, `inimigo`, `vida_zerada`, `limite_de_passos`). |
+
+`GET /tentativas/:tentativaId` relê a tentativa já aberta. `GET /jogadores/:jogadorId/progresso` devolve as fases concluídas e o talento. O jogador local do seed é `00000000-0000-0000-0000-000000000001`.
+
+Um bloco que a fase não liberou responde `422` com `erro: "bloco_nao_liberado"` e não grava execução nem altera o mapa. Outro programa na mesma tentativa usa o mapa e a semente gravados na abertura. Vitória registra o progresso. Vida e ataque da tentativa seguinte nascem de novo. O talento não é apagado.
+
+```bash
+curl -s localhost:3000/fases
+curl -s -X POST localhost:3000/fases/fase-1/tentativas -H 'Content-Type: application/json' -d '{}'
+curl -s -X POST localhost:3000/tentativas/ID/execucoes \
+  -H 'Content-Type: application/json' \
+  -d '{"programa":[{"tipo":"mover","direcao":"direita"},{"tipo":"mover","direcao":"direita"}]}'
 ```
 
 O planejamento das sprints está em [`docs/sprints.md`](docs/sprints.md).
