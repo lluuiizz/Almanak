@@ -1,7 +1,14 @@
-import { exigirAcoesLiberadas } from "./arvore.js";
+import { exigirAcoesLiberadas, type NoPrograma } from "./arvore.js";
 import { executar } from "./motor.js";
 import { clonarPersonagem } from "./personagem.js";
 import type { Bloco, Fase, Personagem, Progresso, Resultado, Tentativa } from "./tipos.js";
+
+export const MOVIMENTOS: Bloco[] = [
+  { tipo: "mover", direcao: "esquerda" },
+  { tipo: "mover", direcao: "direita" },
+  { tipo: "mover", direcao: "cima" },
+  { tipo: "mover", direcao: "baixo" },
+];
 
 const inicioDaFase1: Personagem = {
   posicao: { x: 0, y: 0 },
@@ -16,24 +23,19 @@ export const FASE_1: Fase = {
   largura: 3,
   altura: 1,
   casas: [{ tipo: "vazio" }, { tipo: "vazio", marco: true }, { tipo: "destino" }],
-  blocosLiberados: [
-    { tipo: "mover", direcao: "esquerda" },
-    { tipo: "mover", direcao: "direita" },
-    { tipo: "mover", direcao: "cima" },
-    { tipo: "mover", direcao: "baixo" },
-  ],
+  blocosLiberados: MOVIMENTOS,
   inicio: inicioDaFase1,
   limiteDePassos: 8,
   condicaoDeVitoria: "chegar_no_destino",
 };
 
-export const BLOCOS_DA_FASE_1 = FASE_1.blocosLiberados;
+export const BLOCOS_DA_FASE_1 = MOVIMENTOS;
 
 export function progressoInicial(): Progresso {
   return { fasesConcluidas: [], talento: null };
 }
 
-export function abrirTentativa(fase: Fase, programa: Bloco[], semente: number): Tentativa {
+export function abrirTentativa(fase: Fase, programa: NoPrograma[], semente: number): Tentativa {
   return {
     semente,
     faseId: fase.id,
