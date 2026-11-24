@@ -1,3 +1,5 @@
+import type { NoPrograma } from "./arvore.js";
+
 export type Direcao = "norte" | "leste" | "sul" | "oeste";
 
 export type TipoCasa =
@@ -46,11 +48,17 @@ export type Veredito =
   | "vida_zerada"
   | "limite_de_passos";
 
-export interface Evento {
-  bloco: Bloco;
-  personagem: Personagem;
-  veredito: Veredito;
-}
+export type Caminho = (number | "entao" | "senao" | "senaoSe")[];
+
+export type RamoEscolhido =
+  | { tipo: "entao" }
+  | { tipo: "senaoSe"; indice: number }
+  | { tipo: "senao" }
+  | { tipo: "nenhum" };
+
+export type Evento =
+  | { tipo: "acao"; caminho: Caminho; bloco: Bloco; personagem: Personagem; veredito: Veredito }
+  | { tipo: "ramo"; caminho: Caminho; ramo: RamoEscolhido; personagem: Personagem; veredito: Veredito };
 
 export interface Fase {
   id: string;
@@ -74,7 +82,8 @@ export interface Tentativa extends Mundo {
   faseId: string;
   inicio: Personagem;
   limiteDePassos: number;
-  programa: Bloco[];
+  programa: NoPrograma[];
+  talento?: string | null;
 }
 
 export interface Progresso {
@@ -86,5 +95,5 @@ export interface Resultado {
   eventos: Evento[];
   veredito: Veredito;
   personagem: Personagem;
-  programa: Bloco[];
+  programa: NoPrograma[];
 }
