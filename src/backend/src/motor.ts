@@ -1,24 +1,16 @@
 import type {
   Bloco,
-  Casa,
   Direcao,
   Evento,
   Personagem,
-  Posicao,
   Resultado,
   Tentativa,
   Veredito,
 } from "./tipos.js";
+import { casaEm, vizinha } from "./grade.js";
 import { clonarPersonagem } from "./personagem.js";
 
 const ORDEM: Direcao[] = ["norte", "leste", "sul", "oeste"];
-
-const PASSO: Record<Direcao, Posicao> = {
-  norte: { x: 0, y: -1 },
-  leste: { x: 1, y: 0 },
-  sul: { x: 0, y: 1 },
-  oeste: { x: -1, y: 0 },
-};
 
 const MOVIMENTO_PARA_OLHAR = {
   cima: "norte",
@@ -99,19 +91,11 @@ function andar(
   direcao: Direcao,
   tentativa: Tentativa,
 ): { personagem: Personagem; veredito?: Veredito } {
-  const delta = PASSO[direcao];
-  const alvo = {
-    x: personagem.posicao.x + delta.x,
-    y: personagem.posicao.y + delta.y,
-  };
+  const alvo = vizinha(personagem.posicao, direcao);
   const virado = { ...clonarPersonagem(personagem), olhar: direcao };
-
-  if (!dentro(alvo, tentativa.largura, tentativa.altura)) {
-    return { personagem: virado, veredito: "parede" };
-  }
-
   const casa = casaEm(tentativa, alvo);
-  if (casa.tipo === "parede") {
+
+  if (casa === null || casa.tipo === "parede") {
     return { personagem: virado, veredito: "parede" };
   }
 
@@ -131,14 +115,6 @@ function girar(olhar: Direcao, sentido: "esquerda" | "direita"): Direcao {
   const indice = ORDEM.indexOf(olhar);
   const giro = sentido === "direita" ? 1 : -1;
   return ORDEM[(indice + giro + ORDEM.length) % ORDEM.length];
-}
-
-function dentro(posicao: Posicao, largura: number, altura: number): boolean {
-  return posicao.x >= 0 && posicao.y >= 0 && posicao.x < largura && posicao.y < altura;
-}
-
-function casaEm(tentativa: Tentativa, posicao: Posicao): Casa {
-  return tentativa.casas[posicao.y * tentativa.largura + posicao.x];
 }
 
 function evento(bloco: Bloco, personagem: Personagem, veredito: Veredito): Evento {

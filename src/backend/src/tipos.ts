@@ -63,12 +63,15 @@ export interface Fase {
   condicaoDeVitoria: "chegar_no_destino";
 }
 
-export interface Tentativa {
-  semente: number;
-  faseId: string;
+export interface Mundo {
   largura: number;
   altura: number;
   casas: Casa[];
+}
+
+export interface Tentativa extends Mundo {
+  semente: number;
+  faseId: string;
   inicio: Personagem;
   limiteDePassos: number;
   programa: Bloco[];
