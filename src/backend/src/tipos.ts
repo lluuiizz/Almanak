@@ -1,4 +1,4 @@
-import type { NoPrograma } from "./arvore.js";
+import type { NomeSensor, NoPrograma } from "./arvore.js";
 
 export type Direcao = "norte" | "leste" | "sul" | "oeste";
 
@@ -40,6 +40,8 @@ export type Bloco =
   | { tipo: "atacar" }
   | { tipo: "pegar" };
 
+export type ItemDeCatalogo = Bloco | { tipo: "se" } | { tipo: "sensor"; nome: NomeSensor };
+
 export type Veredito =
   | "sem_vitoria"
   | "vitoria"
@@ -65,7 +67,7 @@ export interface Fase {
   largura: number;
   altura: number;
   casas: Casa[];
-  blocosLiberados: Bloco[];
+  blocosLiberados: ItemDeCatalogo[];
   inicio: Personagem;
   limiteDePassos: number;
   condicaoDeVitoria: "chegar_no_destino";

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { abrirTentativa } from "./fase1.js";
-import { FASE_2 } from "./fases.js";
+import { FASE_2, FASE_3 } from "./fases.js";
 import { executar } from "./motor.js";
 import type { NoPrograma } from "./arvore.js";
 import type { Bloco, Fase } from "./tipos.js";
@@ -35,6 +35,45 @@ describe("fase 2, a curva", () => {
       FASE_2.blocosLiberados.map((item) => item.tipo),
       ["mover", "mover", "mover", "mover"],
     );
+  });
+});
+
+describe("fase 3, o muro", () => {
+  it("põe a parede no terceiro passo à direita e o destino no desvio de baixo", () => {
+    assert.deepEqual(desenhar(FASE_3), ["P..###", "##...D"]);
+  });
+
+  it("libera os movimentos, o sensor de parede e o bloco se", () => {
+    assert.deepEqual(FASE_3.blocosLiberados, [
+      { tipo: "mover", direcao: "esquerda" },
+      { tipo: "mover", direcao: "direita" },
+      { tipo: "mover", direcao: "cima" },
+      { tipo: "mover", direcao: "baixo" },
+      { tipo: "se" },
+      { tipo: "sensor", nome: "parede_frente" },
+    ]);
+  });
+
+  it("vence com a solução do README, a condicional em volta do desvio", () => {
+    const resultado = jogar(FASE_3, [
+      direita,
+      direita,
+      {
+        tipo: "se",
+        pergunta: { tipo: "sensor", nome: "parede_frente" },
+        entao: [baixo, direita, direita, direita],
+      },
+    ]);
+
+    assert.equal(resultado.veredito, "vitoria");
+    assert.deepEqual(resultado.personagem.posicao, { x: 5, y: 1 });
+  });
+
+  it("encerra no muro com três movimentos à direita sem pergunta", () => {
+    const resultado = jogar(FASE_3, [direita, direita, direita]);
+
+    assert.equal(resultado.veredito, "parede");
+    assert.deepEqual(resultado.eventos.at(-1)?.personagem.posicao, { x: 2, y: 0 });
   });
 });
 

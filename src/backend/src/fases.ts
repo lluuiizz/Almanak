@@ -16,6 +16,7 @@ interface Planta {
 }
 
 const CURVA = planta(["P....", "####.", "####D"]);
+const MURO = planta(["P..###", "##...D"]);
 
 export const FASE_2: Fase = {
   id: "fase-2",
@@ -24,6 +25,17 @@ export const FASE_2: Fase = {
   casas: CURVA.casas,
   blocosLiberados: [...MOVIMENTOS],
   inicio: { posicao: CURVA.inicio, olhar: "leste", vida: 1, ataque: 1, alforje: [] },
+  limiteDePassos: 12,
+  condicaoDeVitoria: "chegar_no_destino",
+};
+
+export const FASE_3: Fase = {
+  id: "fase-3",
+  largura: MURO.largura,
+  altura: MURO.altura,
+  casas: MURO.casas,
+  blocosLiberados: [...MOVIMENTOS, { tipo: "se" }, { tipo: "sensor", nome: "parede_frente" }],
+  inicio: { posicao: MURO.inicio, olhar: "leste", vida: 1, ataque: 1, alforje: [] },
   limiteDePassos: 12,
   condicaoDeVitoria: "chegar_no_destino",
 };
