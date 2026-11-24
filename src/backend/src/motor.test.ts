@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { BlocoNaoLiberado } from "./arvore.js";
 import { BLOCOS_DA_FASE_1, executarFase1, tentativaDaFase1 } from "./fase1.js";
 import { executar } from "./motor.js";
 import type { Bloco, Tentativa } from "./tipos.js";
@@ -46,7 +47,7 @@ describe("fase 1", () => {
   });
 
   it("recusa um bloco que a fase 1 não liberou", () => {
-    assert.throws(() => executarFase1([{ tipo: "atacar" }]), /não liberado/);
+    assert.throws(() => executarFase1([{ tipo: "atacar" }]), BlocoNaoLiberado);
   });
 });
 

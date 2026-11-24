@@ -1,3 +1,5 @@
+import type { NomeSensor, NoPrograma } from "./arvore.js";
+
 export type Direcao = "norte" | "leste" | "sul" | "oeste";
 
 export type TipoCasa =
@@ -38,6 +40,8 @@ export type Bloco =
   | { tipo: "atacar" }
   | { tipo: "pegar" };
 
+export type ItemDeCatalogo = Bloco | { tipo: "se" } | { tipo: "sensor"; nome: NomeSensor };
+
 export type Veredito =
   | "sem_vitoria"
   | "vitoria"
@@ -46,32 +50,42 @@ export type Veredito =
   | "vida_zerada"
   | "limite_de_passos";
 
-export interface Evento {
-  bloco: Bloco;
-  personagem: Personagem;
-  veredito: Veredito;
-}
+export type Caminho = (number | "entao" | "senao" | "senaoSe")[];
+
+export type RamoEscolhido =
+  | { tipo: "entao" }
+  | { tipo: "senaoSe"; indice: number }
+  | { tipo: "senao" }
+  | { tipo: "nenhum" };
+
+export type Evento =
+  | { tipo: "acao"; caminho: Caminho; bloco: Bloco; personagem: Personagem; veredito: Veredito }
+  | { tipo: "ramo"; caminho: Caminho; ramo: RamoEscolhido; personagem: Personagem; veredito: Veredito };
 
 export interface Fase {
   id: string;
   largura: number;
   altura: number;
   casas: Casa[];
-  blocosLiberados: Bloco[];
+  blocosLiberados: ItemDeCatalogo[];
   inicio: Personagem;
   limiteDePassos: number;
   condicaoDeVitoria: "chegar_no_destino";
 }
 
-export interface Tentativa {
-  semente: number;
-  faseId: string;
+export interface Mundo {
   largura: number;
   altura: number;
   casas: Casa[];
+}
+
+export interface Tentativa extends Mundo {
+  semente: number;
+  faseId: string;
   inicio: Personagem;
   limiteDePassos: number;
-  programa: Bloco[];
+  programa: NoPrograma[];
+  talento?: string | null;
 }
 
 export interface Progresso {
@@ -83,5 +97,5 @@ export interface Resultado {
   eventos: Evento[];
   veredito: Veredito;
   personagem: Personagem;
-  programa: Bloco[];
+  programa: NoPrograma[];
 }
