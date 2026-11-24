@@ -1,4 +1,6 @@
+import { exigirAcoesLiberadas } from "./arvore.js";
 import { executar } from "./motor.js";
+import { clonarPersonagem } from "./personagem.js";
 import type { Bloco, Fase, Personagem, Progresso, Resultado, Tentativa } from "./tipos.js";
 
 const inicioDaFase1: Personagem = {
@@ -67,27 +69,7 @@ export function tentativaDaFase1(programa: Bloco[]): Tentativa {
 }
 
 export function executarFase1(programa: Bloco[]): Resultado {
-  for (const bloco of programa) {
-    if (!liberado(bloco)) {
-      throw new Error("bloco não liberado na fase 1");
-    }
-  }
-
-  return executar(tentativaDaFase1(programa));
-}
-
-function liberado(bloco: Bloco): boolean {
-  return FASE_1.blocosLiberados.some(
-    (item) => item.tipo === "mover" && bloco.tipo === "mover" && item.direcao === bloco.direcao,
-  );
-}
-
-function clonarPersonagem(personagem: Personagem): Personagem {
-  return {
-    ...personagem,
-    posicao: { ...personagem.posicao },
-    alforje: [...personagem.alforje],
-  };
+  return executar(tentativaDaFase1(exigirAcoesLiberadas(programa, BLOCOS_DA_FASE_1)));
 }
 
 function copiarProgresso(progresso: Progresso): Progresso {

@@ -9,6 +9,7 @@ import type {
   Tentativa,
   Veredito,
 } from "./tipos.js";
+import { clonarPersonagem } from "./personagem.js";
 
 const ORDEM: Direcao[] = ["norte", "leste", "sul", "oeste"];
 
@@ -155,13 +156,5 @@ function falha(
     veredito,
     personagem: clonarPersonagem(inicio),
     programa: tentativa.programa,
-  };
-}
-
-function clonarPersonagem(personagem: Personagem): Personagem {
-  return {
-    ...personagem,
-    posicao: { ...personagem.posicao },
-    alforje: [...personagem.alforje],
   };
 }
