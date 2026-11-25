@@ -23,6 +23,11 @@ export const FASE_1: Fase = {
   inicio: inicioDaFase1,
   limiteDePassos: 8,
   condicaoDeVitoria: "chegar_no_destino",
+  enunciado:
+    'Player, o seu objetivo é chegar até o quadrado escrito Destino. Para isso você dispõe das seguintes ações: mover-se à direita, mover-se à esquerda, mover-se para cima/baixo. Arraste os blocos de ações para o "Programador de ações" e aperte o botão de Play para que inicie a sequência.',
+  dica:
+    'Um único bloco "mover-se à direita" faz o personagem dar um passo e parar no marco X. Coloque dois blocos "mover-se à direita" e aperte Play para alcançar o Destino!',
+  temNeblina: false,
 };
 
 export const BLOCOS_DA_FASE_1 = FASE_1.blocosLiberados;
@@ -41,6 +46,7 @@ export function abrirTentativa(fase: Fase, programa: Bloco[], semente: number): 
     inicio: clonarPersonagem(fase.inicio),
     limiteDePassos: fase.limiteDePassos,
     programa,
+    temNeblina: fase.temNeblina ?? false,
   };
 }
 

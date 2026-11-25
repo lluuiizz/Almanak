@@ -16,7 +16,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Seed da Fase 1 (idêntica à constante FASE_1 em src/backend/src/fase1.ts)
 INSERT INTO fases (
-    id, ordem, nome, conceito, descricao,
+    id, ordem, nome, conceito, descricao, enunciado, dica,
     largura, altura, limite_de_passos, tem_neblina, condicao_de_vitoria,
     inicio_personagem, casas_base, blocos_liberados
 ) VALUES (
@@ -25,6 +25,8 @@ INSERT INTO fases (
     'Tutorial',
     'Sequência',
     'Um e dois passos até o destino.',
+    'Player, o seu objetivo é chegar até o quadrado escrito Destino. Para isso você dispõe das seguintes ações: mover-se à direita, mover-se à esquerda, mover-se para cima/baixo. Arraste os blocos de ações para o "Programador de ações" e aperte o botão de Play para que inicie a sequência.',
+    'Um único bloco "mover-se à direita" faz o personagem dar um passo e parar no marco X. Coloque dois blocos "mover-se à direita" e aperte Play para alcançar o Destino!',
     3,
     1,
     8,
@@ -33,5 +35,9 @@ INSERT INTO fases (
     '{"posicao": {"x": 0, "y": 0}, "olhar": "leste", "vida": 1, "ataque": 1, "alforje": []}'::jsonb,
     '[{"tipo": "vazio"}, {"tipo": "vazio", "marco": true}, {"tipo": "destino"}]'::jsonb,
     '[{"tipo": "mover", "direcao": "esquerda"}, {"tipo": "mover", "direcao": "direita"}, {"tipo": "mover", "direcao": "cima"}, {"tipo": "mover", "direcao": "baixo"}]'::jsonb
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    enunciado = EXCLUDED.enunciado,
+    dica = EXCLUDED.dica,
+    tem_neblina = EXCLUDED.tem_neblina,
+    descricao = EXCLUDED.descricao;
 

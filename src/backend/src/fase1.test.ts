@@ -16,6 +16,9 @@ describe("fase e progresso", () => {
     assert.equal(FASE_1.inicio.ataque, 1);
     assert.equal(FASE_1.blocosLiberados.length, 4);
     assert.equal(FASE_1.casas[2].tipo, "destino");
+    assert.equal(FASE_1.temNeblina, false);
+    assert.match(FASE_1.enunciado ?? "", /Player, o seu objetivo é chegar até o quadrado escrito Destino/);
+    assert.match(FASE_1.dica ?? "", /Um único bloco "mover-se à direita"/);
   });
 
   it("guarda na tentativa a semente, o estado inicial e o programa", () => {

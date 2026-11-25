@@ -26,24 +26,66 @@ describe("API da fase 1", { concurrency: false }, () => {
     });
   });
 
-  it("lista a fase 1 e os quatro movimentos", async () => {
+  it("lista a fase 1 e os quatro movimentos com enunciado, dica e temNeblina", async () => {
     const resposta = await pedir(porta, "GET", "/fases");
 
     assert.equal(resposta.status, 200);
     assert.equal(resposta.json.fases.length, 1);
-    assert.equal(resposta.json.fases[0].id, "fase-1");
+    const fase1 = resposta.json.fases[0];
+    assert.equal(fase1.id, "fase-1");
+    assert.equal(fase1.temNeblina, false);
+    assert.equal(fase1.descricao, "Um e dois passos até o destino.");
+    assert.match(fase1.enunciado, /Player, o seu objetivo é chegar até o quadrado escrito Destino/);
+    assert.match(fase1.dica, /Um único bloco "mover-se à direita"/);
     assert.deepEqual(
-      resposta.json.fases[0].blocosLiberados.map((bloco: { direcao: string }) => bloco.direcao),
+      fase1.blocosLiberados.map((bloco: { direcao: string }) => bloco.direcao),
       ["esquerda", "direita", "cima", "baixo"],
     );
   });
 
-  it("abre a tentativa com semente e estado inicial visível", async () => {
+  it("busca fase por id retornando enunciado, dica e temNeblina, e dica ausente como null", async () => {
+    const resposta = await pedir(porta, "GET", "/fases/fase-1");
+
+    assert.equal(resposta.status, 200);
+    assert.equal(resposta.json.id, "fase-1");
+    assert.equal(resposta.json.temNeblina, false);
+    assert.equal(resposta.json.descricao, "Um e dois passos até o destino.");
+    assert.match(resposta.json.enunciado, /Player, o seu objetivo é chegar até o quadrado escrito Destino/);
+    assert.match(resposta.json.dica, /Um único bloco "mover-se à direita"/);
+
+    // Adiciona temporariamente uma fase sem dica no repositório de memória para testar serialização com null
+    const repoFases = await repo.listarFases();
+    const faseSemDica = {
+      ...repoFases[0],
+      id: "fase-sem-dica",
+      ordem: 2,
+      nome: "Sem dica",
+      enunciado: "Enunciado teste",
+      dica: null,
+      temNeblina: true,
+    };
+    (repo as any).listarFases = async () => [repoFases[0], faseSemDica];
+    (repo as any).buscarFase = async (id: string) => (id === "fase-sem-dica" ? faseSemDica : repoFases[0]);
+
+    const respostaSemDica = await pedir(porta, "GET", "/fases/fase-sem-dica");
+    assert.equal(respostaSemDica.status, 200);
+    assert.equal(respostaSemDica.json.dica, null);
+    assert.equal(respostaSemDica.json.temNeblina, true);
+    assert.equal(respostaSemDica.json.enunciado, "Enunciado teste");
+
+    // Restaura métodos do repo
+    (repo as any).listarFases = async () => repoFases;
+    (repo as any).buscarFase = async (id: string) => (id === "fase-1" ? repoFases[0] : null);
+  });
+
+  it("abre a tentativa com semente, estado inicial e temNeblina visíveis", async () => {
     const resposta = await pedir(porta, "POST", "/fases/fase-1/tentativas", {});
 
     assert.equal(resposta.status, 201);
     assert.equal(resposta.json.semente, 1);
     assert.equal(resposta.json.faseId, "fase-1");
+    assert.equal(resposta.json.temNeblina, false);
+    assert.equal(resposta.json.estadoInicial.temNeblina, false);
     assert.deepEqual(resposta.json.estadoInicial.personagem.posicao, { x: 0, y: 0 });
     assert.deepEqual(
       resposta.json.estadoInicial.casas.map((casa: { tipo: string; marco?: boolean }) =>
@@ -51,6 +93,11 @@ describe("API da fase 1", { concurrency: false }, () => {
       ),
       ["vazio", "X", "destino"],
     );
+
+    const consultada = await pedir(porta, "GET", `/tentativas/${resposta.json.id}`);
+    assert.equal(consultada.status, 200);
+    assert.equal(consultada.json.temNeblina, false);
+    assert.equal(consultada.json.estadoInicial.temNeblina, false);
   });
 
   it("executa dois passos até a vitória e um passo para no X", async () => {

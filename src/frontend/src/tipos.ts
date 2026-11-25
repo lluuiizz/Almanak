@@ -74,6 +74,8 @@ export interface Fase {
   conceito: string
   enunciado: string
   dicaTutorial: string
+  dica?: string | null
+  temNeblina?: boolean
   largura: number
   altura: number
   casas: Casa[]

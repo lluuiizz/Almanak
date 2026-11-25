@@ -43,6 +43,8 @@ erDiagram
         varchar nome
         varchar conceito
         text descricao
+        text enunciado
+        text dica
         smallint largura
         smallint altura
         smallint limite_de_passos
@@ -131,10 +133,12 @@ Catálogo das doze fases. A `ordem` é única e vale de 1 a 12.
 | nome | `VARCHAR(100)` | NN | | Ex.: Tutorial |
 | conceito | `VARCHAR(100)` | NN | | Ex.: Sequência |
 | descricao | `TEXT` | sim | | Texto curto da fase |
+| enunciado | `TEXT` | NN | | Enunciado completo da missão para exibição no painel |
+| dica | `TEXT` | sim | | Dica tutorial da missão (ausente vai no JSON como `null`) |
 | largura | `SMALLINT` | NN | | `CHECK (largura > 0)` |
 | altura | `SMALLINT` | NN | | `CHECK (altura > 0)` |
 | limite_de_passos | `SMALLINT` | NN | | `DEFAULT 8`. `CHECK (> 0)`. Corta repetição sem fim |
-| tem_neblina | `BOOLEAN` | NN | | `DEFAULT FALSE`. Verdadeiro na fase 5 |
+| tem_neblina | `BOOLEAN` | NN | | `DEFAULT FALSE`. Verdadeiro na fase 5 (devolvido como `temNeblina` na API) |
 | condicao_de_vitoria | `VARCHAR(50)` | NN | | `DEFAULT 'chegar_no_destino'` |
 | inicio_personagem | `JSONB` | NN | | Personagem no início da fase |
 | casas_base | `JSONB` | NN | | Grade modelo, antes do sorteio da tentativa |

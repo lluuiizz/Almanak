@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS fases (
     nome VARCHAR(100) NOT NULL,
     conceito VARCHAR(100) NOT NULL,
     descricao TEXT,
+    enunciado TEXT NOT NULL,
+    dica TEXT,
     largura SMALLINT NOT NULL CHECK (largura > 0),
     altura SMALLINT NOT NULL CHECK (altura > 0),
     limite_de_passos SMALLINT NOT NULL DEFAULT 8 CHECK (limite_de_passos > 0),
@@ -60,6 +62,27 @@ CREATE TABLE IF NOT EXISTS fases (
     casas_base JSONB NOT NULL,
     blocos_liberados JSONB NOT NULL
 );
+
+-- Migração idempotente para bancos Postgres já criados anteriormente pelo Compose
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'fases') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'fases' AND column_name = 'enunciado') THEN
+            ALTER TABLE fases ADD COLUMN enunciado TEXT;
+            UPDATE fases
+            SET enunciado = 'Player, o seu objetivo é chegar até o quadrado escrito Destino. Para isso você dispõe das seguintes ações: mover-se à direita, mover-se à esquerda, mover-se para cima/baixo. Arraste os blocos de ações para o "Programador de ações" e aperte o botão de Play para que inicie a sequência.'
+            WHERE id = 'fase-1';
+            UPDATE fases SET enunciado = '' WHERE enunciado IS NULL;
+            ALTER TABLE fases ALTER COLUMN enunciado SET NOT NULL;
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'fases' AND column_name = 'dica') THEN
+            ALTER TABLE fases ADD COLUMN dica TEXT;
+            UPDATE fases
+            SET dica = 'Um único bloco "mover-se à direita" faz o personagem dar um passo e parar no marco X. Coloque dois blocos "mover-se à direita" e aperte Play para alcançar o Destino!'
+            WHERE id = 'fase-1';
+        END IF;
+    END IF;
+END $$;
 
 -- 5. Tabela de Progresso por Fase (fasesConcluidas: string[])
 CREATE TABLE IF NOT EXISTS progresso_fases (

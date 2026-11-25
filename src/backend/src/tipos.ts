@@ -61,6 +61,9 @@ export interface Fase {
   inicio: Personagem;
   limiteDePassos: number;
   condicaoDeVitoria: "chegar_no_destino";
+  enunciado?: string;
+  dica?: string | null;
+  temNeblina?: boolean;
 }
 
 export interface Tentativa {
@@ -72,6 +75,7 @@ export interface Tentativa {
   inicio: Personagem;
   limiteDePassos: number;
   programa: Bloco[];
+  temNeblina?: boolean;
 }
 
 export interface Progresso {

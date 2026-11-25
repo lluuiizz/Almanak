@@ -187,9 +187,12 @@ function corpoFase(fase: FaseRegistro) {
     nome: fase.nome,
     conceito: fase.conceito,
     descricao: fase.descricao,
+    enunciado: fase.enunciado,
+    dica: fase.dica ?? null,
     largura: fase.largura,
     altura: fase.altura,
     limiteDePassos: fase.limiteDePassos,
+    temNeblina: fase.temNeblina,
     condicaoDeVitoria: fase.condicaoDeVitoria,
     inicio: fase.inicio,
     casas: fase.casas,
@@ -203,6 +206,7 @@ function corpoTentativa(tentativa: TentativaRegistro) {
     faseId: tentativa.faseId,
     jogadorId: tentativa.jogadorId,
     semente: tentativa.semente,
+    temNeblina: tentativa.temNeblina,
     blocosLiberados: tentativa.blocosLiberados,
     programaAtual: tentativa.programaAtual,
     estadoInicial: {
@@ -211,6 +215,7 @@ function corpoTentativa(tentativa: TentativaRegistro) {
       casas: tentativa.casas,
       personagem: tentativa.inicio,
       limiteDePassos: tentativa.limiteDePassos,
+      temNeblina: tentativa.temNeblina,
     },
   };
 }

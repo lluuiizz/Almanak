@@ -11,9 +11,12 @@ export interface FaseRegistro {
   nome: string;
   conceito: string;
   descricao: string | null;
+  enunciado: string;
+  dica: string | null;
   largura: number;
   altura: number;
   limiteDePassos: number;
+  temNeblina: boolean;
   condicaoDeVitoria: string;
   inicio: Personagem;
   casas: Casa[];
@@ -28,6 +31,7 @@ export interface TentativaRegistro {
   largura: number;
   altura: number;
   limiteDePassos: number;
+  temNeblina: boolean;
   inicio: Personagem;
   casas: Casa[];
   programaAtual: NoPrograma[];
@@ -55,9 +59,12 @@ interface FaseRow {
   nome: string;
   conceito: string;
   descricao: string | null;
+  enunciado: string;
+  dica: string | null;
   largura: number;
   altura: number;
   limite_de_passos: number;
+  tem_neblina: boolean;
   condicao_de_vitoria: string;
   inicio_personagem: Personagem;
   casas_base: Casa[];
@@ -72,18 +79,54 @@ interface TentativaRow {
   largura: number;
   altura: number;
   limite_de_passos: number;
+  tem_neblina: boolean;
   inicio_personagem: Personagem;
   casas: Casa[];
   programa_atual: NoPrograma[];
   blocos_liberados: Bloco[];
 }
 
+export async function migrarBancoSeNecessario(pool: Pool): Promise<void> {
+  await pool.query(`
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'fases' AND column_name = 'enunciado'
+      ) THEN
+        ALTER TABLE fases ADD COLUMN enunciado TEXT;
+        UPDATE fases
+        SET enunciado = 'Player, o seu objetivo é chegar até o quadrado escrito Destino. Para isso você dispõe das seguintes ações: mover-se à direita, mover-se à esquerda, mover-se para cima/baixo. Arraste os blocos de ações para o "Programador de ações" e aperte o botão de Play para que inicie a sequência.'
+        WHERE id = 'fase-1';
+        UPDATE fases SET enunciado = '' WHERE enunciado IS NULL;
+        ALTER TABLE fases ALTER COLUMN enunciado SET NOT NULL;
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'fases' AND column_name = 'dica'
+      ) THEN
+        ALTER TABLE fases ADD COLUMN dica TEXT;
+        UPDATE fases
+        SET dica = 'Um único bloco "mover-se à direita" faz o personagem dar um passo e parar no marco X. Coloque dois blocos "mover-se à direita" e aperte Play para alcançar o Destino!'
+        WHERE id = 'fase-1';
+      END IF;
+
+      UPDATE fases
+      SET enunciado = 'Player, o seu objetivo é chegar até o quadrado escrito Destino. Para isso você dispõe das seguintes ações: mover-se à direita, mover-se à esquerda, mover-se para cima/baixo. Arraste os blocos de ações para o "Programador de ações" e aperte o botão de Play para que inicie a sequência.',
+          dica = 'Um único bloco "mover-se à direita" faz o personagem dar um passo e parar no marco X. Coloque dois blocos "mover-se à direita" e aperte Play para alcançar o Destino!',
+          tem_neblina = FALSE,
+          descricao = 'Um e dois passos até o destino.'
+      WHERE id = 'fase-1';
+    END $$;
+  `);
+}
+
 export function criarRepositorioPg(pool: Pool): Repositorio {
   return {
     async listarFases() {
       const resultado = await pool.query<FaseRow>(
-        `SELECT id, ordem, nome, conceito, descricao, largura, altura,
-                limite_de_passos, condicao_de_vitoria,
+        `SELECT id, ordem, nome, conceito, descricao, enunciado, dica, largura, altura,
+                limite_de_passos, tem_neblina, condicao_de_vitoria,
                 inicio_personagem, casas_base, blocos_liberados
          FROM fases
          ORDER BY ordem`,
@@ -93,8 +136,8 @@ export function criarRepositorioPg(pool: Pool): Repositorio {
 
     async buscarFase(id) {
       const resultado = await pool.query<FaseRow>(
-        `SELECT id, ordem, nome, conceito, descricao, largura, altura,
-                limite_de_passos, condicao_de_vitoria,
+        `SELECT id, ordem, nome, conceito, descricao, enunciado, dica, largura, altura,
+                limite_de_passos, tem_neblina, condicao_de_vitoria,
                 inicio_personagem, casas_base, blocos_liberados
          FROM fases
          WHERE id = $1`,
@@ -134,7 +177,7 @@ export function criarRepositorioPg(pool: Pool): Repositorio {
       const resultado = await pool.query<TentativaRow>(
         `SELECT t.id, t.jogador_id, t.fase_id, t.semente, t.largura, t.altura,
                 t.limite_de_passos, t.inicio_personagem, t.casas, t.programa_atual,
-                f.blocos_liberados
+                f.blocos_liberados, f.tem_neblina
          FROM tentativas t
          JOIN fases f ON f.id = t.fase_id
          WHERE t.id = $1`,
@@ -222,9 +265,14 @@ export function criarRepositorioMemoria(opcoes?: { talento?: string | null }): R
       nome: "Tutorial",
       conceito: "Sequência",
       descricao: "Um e dois passos até o destino.",
+      enunciado:
+        'Player, o seu objetivo é chegar até o quadrado escrito Destino. Para isso você dispõe das seguintes ações: mover-se à direita, mover-se à esquerda, mover-se para cima/baixo. Arraste os blocos de ações para o "Programador de ações" e aperte o botão de Play para que inicie a sequência.',
+      dica:
+        'Um único bloco "mover-se à direita" faz o personagem dar um passo e parar no marco X. Coloque dois blocos "mover-se à direita" e aperte Play para alcançar o Destino!',
       largura: 3,
       altura: 1,
       limiteDePassos: 8,
+      temNeblina: false,
       condicaoDeVitoria: "chegar_no_destino",
       inicio: {
         posicao: { x: 0, y: 0 },
@@ -269,6 +317,7 @@ export function criarRepositorioMemoria(opcoes?: { talento?: string | null }): R
         largura: fase.largura,
         altura: fase.altura,
         limiteDePassos: fase.limiteDePassos,
+        temNeblina: fase.temNeblina,
         inicio: clonarPersonagem(fase.inicio),
         casas: fase.casas.map((casa) => ({ ...casa })),
         programaAtual: [],
@@ -325,9 +374,12 @@ function mapearFase(row: FaseRow): FaseRegistro {
     nome: row.nome,
     conceito: row.conceito,
     descricao: row.descricao,
+    enunciado: row.enunciado,
+    dica: row.dica ?? null,
     largura: row.largura,
     altura: row.altura,
     limiteDePassos: row.limite_de_passos,
+    temNeblina: Boolean(row.tem_neblina),
     condicaoDeVitoria: row.condicao_de_vitoria,
     inicio: clonarPersonagem(row.inicio_personagem),
     casas: row.casas_base.map((casa) => ({ ...casa })),
@@ -344,6 +396,7 @@ function mapearTentativa(row: TentativaRow): TentativaRegistro {
     largura: row.largura,
     altura: row.altura,
     limiteDePassos: row.limite_de_passos,
+    temNeblina: Boolean(row.tem_neblina),
     inicio: clonarPersonagem(row.inicio_personagem),
     casas: row.casas.map((casa) => ({ ...casa })),
     programaAtual: Array.isArray(row.programa_atual) ? row.programa_atual : [],

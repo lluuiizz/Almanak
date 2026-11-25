@@ -1,9 +1,16 @@
 import { criarServidor } from "./aplicacao.js";
 import { criarPool } from "./db.js";
-import { criarRepositorioPg } from "./repositorio.js";
+import { criarRepositorioPg, migrarBancoSeNecessario } from "./repositorio.js";
 
 const porta = Number(process.env.PORT ?? 3000);
 const pool = criarPool();
+
+try {
+  await migrarBancoSeNecessario(pool);
+} catch (erro) {
+  console.warn("Aviso ao rodar migração inicial:", erro);
+}
+
 const servidor = criarServidor(criarRepositorioPg(pool));
 
 servidor.listen(porta, "0.0.0.0", () => {
