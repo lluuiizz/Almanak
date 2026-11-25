@@ -32,6 +32,23 @@ export function progressoInicial(): Progresso {
 }
 
 export function abrirTentativa(fase: Fase, programa: Bloco[], semente: number): Tentativa {
+  if (fase.id === "fase-4") {
+    const portaoAberto = Math.abs(semente) % 2 === 1;
+    return {
+      semente,
+      faseId: fase.id,
+      largura: fase.largura,
+      altura: fase.altura,
+      casas: fase.casas.map((casa) =>
+        casa.tipo === "portao" ? { ...casa, aberto: portaoAberto } : { ...casa },
+      ),
+      inicio: clonarPersonagem(fase.inicio),
+      limiteDePassos: fase.limiteDePassos,
+      programa,
+      temNeblina: Boolean(fase.temNeblina),
+    };
+  }
+
   return {
     semente,
     faseId: fase.id,
@@ -41,6 +58,7 @@ export function abrirTentativa(fase: Fase, programa: Bloco[], semente: number): 
     inicio: clonarPersonagem(fase.inicio),
     limiteDePassos: fase.limiteDePassos,
     programa,
+    temNeblina: Boolean(fase.temNeblina || fase.id === "fase-5"),
   };
 }
 
