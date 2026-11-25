@@ -3,9 +3,11 @@ export type Direcao = "norte" | "leste" | "sul" | "oeste";
 export type TipoCasa =
   | "vazio"
   | "parede"
+  | "portao"
   | "destino"
   | "inimigo"
   | "item"
+  | "bau"
   | "porta"
   | "espinhos"
   | "armadilha";
@@ -13,6 +15,7 @@ export type TipoCasa =
 export interface Casa {
   tipo: TipoCasa;
   marco?: boolean;
+  aberto?: boolean;
   resistencia?: number;
   dano?: number;
   conteudo?: string;
@@ -61,6 +64,7 @@ export interface Fase {
   inicio: Personagem;
   limiteDePassos: number;
   condicaoDeVitoria: "chegar_no_destino";
+  temNeblina?: boolean;
 }
 
 export interface Tentativa {
@@ -72,6 +76,7 @@ export interface Tentativa {
   inicio: Personagem;
   limiteDePassos: number;
   programa: Bloco[];
+  temNeblina?: boolean;
 }
 
 export interface Progresso {
